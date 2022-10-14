@@ -126,24 +126,22 @@ class Methods
 
 		if ($result['success']) return $method === 'DELETE' ? $result["code"] : $result['data'];
 
-		$errorCode = $result['error']['message']['error'];
-		$errorInfo = [
-			$result['error']['message']['message'],
-			$result['error']['message']['cause'],
-			$errorCode,
-			$result['error']['message']['request'],
-		];
+		$errorCode 		= isset($result['error']['message']['error']) ? $result['error']['message']['error'] : 999;
+		$errorMessage 	= isset($result['error']['message']['message']) ? $result['error']['message']['message'] : print_r($result,true);
+		$errorCause 	= isset($result['error']['message']['cause']) ? $result['error']['message']['cause'] : 'Undefined Cause';
+		$errorRequest 	= isset($result['error']['message']['request']) ? $result['error']['message']['request'] : 'Undefined Request';
+
 
 		if ($errorCode === 2300) {
-			throw new RateLimitError($errorInfo[0], $errorInfo[1] ?? '', $errorInfo[2], $errorInfo[3]);
+			throw new RateLimitError($errorMessage, $errorCause, $errorCode, $errorRequest);
 		} else if ($errorCode <= 1108 && $errorCode >= 1100) {
-			throw new PermissionError($errorInfo[0], $errorInfo[1] ?? '', $errorInfo[2], $errorInfo[3]);
+			throw new PermissionError($errorMessage, $errorCause, $errorCode, $errorRequest);
 		} else if ($errorCode >= 2500) {
-			throw new ServiceError($errorInfo[0], $errorInfo[1] ?? '', $errorInfo[2], $errorInfo[3]);
+			throw new ServiceError($errorMessage, $errorCause, $errorCode, $errorRequest);
 		} else if ($errorCode === 2218) { // Precondition error for Auto-Dispatch
-			throw new ServiceError($errorInfo[0], $errorInfo[1] ?? '', $errorInfo[2], $errorInfo[3]);
+			throw new ServiceError($errorMessage, $errorCause, $errorCode, $errorRequest);
 		}
 		// All others, throw general HTTP error
-		throw new HttpError($errorInfo[0], $errorInfo[1] ?? '', $errorInfo[2], $errorInfo[3]);
+		throw new HttpError($errorMessage, $errorCause , $errorCode, $errorRequest);
 	}
 }
